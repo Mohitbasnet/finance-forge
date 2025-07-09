@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - Finance Forge{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Profile Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-3 text-center">
+                            {% if user_profile.profile_picture %}
+                                <img src="{{ user_profile.profile_picture.url }}" alt="Profile Picture" 
+                                     class="rounded-circle img-fluid mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-primary d-inline-flex align-items-center justify-content-center mb-3" 
+                                     style="width: 120px; height: 120px;">
+                                    <i class="fas fa-user text-white" style="font-size: 3rem;"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <h2 class="mb-2">{{ user_profile.get_full_name }}</h2>
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-envelope me-2"></i>{{ user.email }}
+                            </p>
+                            {% if user_profile.phone_number %}
+                                <p class="text-muted mb-2">
+                                    <i class="fas fa-phone me-2"></i>{{ user_profile.phone_number }}
+                                </p>
+                            {% endif %}
+                            {% if user_profile.date_of_birth %}
+                                <p class="text-muted mb-2">
+                                    <i class="fas fa-birthday-cake me-2"></i>{{ user_profile.date_of_birth|date:"F j, Y" }}
+                                    {% if user_profile.get_age %}
+                                        ({{ user_profile.get_age }} years old)
+                                    {% endif %}
+                                </p>
+                            {% endif %}
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-clock me-2"></i>Member since {{ user.date_joined|date:"F j, Y" }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow text-center">
+                <div class="card-body">
+                    <div class="dashboard-stat text-primary">{{ total_transactions }}</div>
+                    <h6 class="text-muted">Total Transactions</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow text-center">
+                <div class="card-body">
+                    <div class="dashboard-stat text-success">{{ total_saved_quotes }}</div>
+                    <h6 class="text-muted">Saved Quotes</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow text-center">
+                <div class="card-body">
+                    <div class="dashboard-stat text-warning">{{ total_investments }}</div>
+                    <h6 class="text-muted">Investment Plans</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Forms -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-edit me-2"></i>Edit Profile
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Basic Information -->
+                        <h6 class="fw-bold mb-3 text-primary">Basic Information</h6>
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ user_form.first_name.id_for_label }}" class="form-label">First Name</label>
+                                {{ user_form.first_name }}
+                                {% if user_form.first_name.errors %}
+                                    <div class="text-danger small">{{ user_form.first_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ user_form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                                {{ user_form.last_name }}
+                                {% if user_form.last_name.errors %}
+                                    <div class="text-danger small">{{ user_form.last_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="{{ user_form.email.id_for_label }}" class="form-label">Email</label>
+                                {{ user_form.email }}
+                                {% if user_form.email.errors %}
+                                    <div class="text-danger small">{{ user_form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Profile Information -->
+                        <h6 class="fw-bold mb-3 text-primary">Profile Information</h6>
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ profile_form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                                {{ profile_form.phone_number }}
+                                {% if profile_form.phone_number.errors %}
+                                    <div class="text-danger small">{{ profile_form.phone_number.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ profile_form.date_of_birth.id_for_label }}" class="form-label">Date of Birth</label>
+                                {{ profile_form.date_of_birth }}
+                                {% if profile_form.date_of_birth.errors %}
+                                    <div class="text-danger small">{{ profile_form.date_of_birth.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ profile_form.gender.id_for_label }}" class="form-label">Gender</label>
+                                {{ profile_form.gender }}
+                                {% if profile_form.gender.errors %}
+                                    <div class="text-danger small">{{ profile_form.gender.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ profile_form.preferred_currency.id_for_label }}" class="form-label">Preferred Currency</label>
+                                {{ profile_form.preferred_currency }}
+                                {% if profile_form.preferred_currency.errors %}
+                                    <div class="text-danger small">{{ profile_form.preferred_currency.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="{{ profile_form.profile_picture.id_for_label }}" class="form-label">Profile Picture</label>
+                                {{ profile_form.profile_picture }}
+                                {% if profile_form.profile_picture.errors %}
+                                    <div class="text-danger small">{{ profile_form.profile_picture.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="{{ profile_form.website.id_for_label }}" class="form-label">Website</label>
+                                {{ profile_form.website }}
+                                {% if profile_form.website.errors %}
+                                    <div class="text-danger small">{{ profile_form.website.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="{{ profile_form.address.id_for_label }}" class="form-label">Address</label>
+                                {{ profile_form.address }}
+                                {% if profile_form.address.errors %}
+                                    <div class="text-danger small">{{ profile_form.address.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="{{ profile_form.bio.id_for_label }}" class="form-label">Bio</label>
+                                {{ profile_form.bio }}
+                                {% if profile_form.bio.errors %}
+                                    <div class="text-danger small">{{ profile_form.bio.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'change_password' %}" class="btn btn-outline-warning me-md-2">
+                                <i class="fas fa-key me-2"></i>Change Password
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity Sidebar -->
+        <div class="col-lg-4">
+            <!-- Recent Transactions -->
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Recent Transactions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_transactions %}
+                        {% for transaction in recent_transactions %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <small class="fw-bold">{{ transaction.amount }} {{ transaction.from_currency }}</small><br>
+                                    <small class="text-muted">{{ transaction.transaction_date|date:"M j, Y" }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-success">{{ transaction.converted_amount }} {{ transaction.to_currency }}</small><br>
+                                    <small class="text-muted">Rate: {{ transaction.exchange_rate }}</small>
+                                </div>
+                            </div>
+                            {% if not forloop.last %}<hr class="my-2">{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted small">No recent transactions</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Saved Quotes -->
+            <div class="card border-0 shadow">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-bookmark me-2"></i>Recent Saved Quotes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_quotes %}
+                        {% for quote in recent_quotes %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <small class="fw-bold">{{ quote.amount }} {{ quote.from_currency }}</small><br>
+                                    <small class="text-muted">{{ quote.quote_date|date:"M j, Y" }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-success">{{ quote.converted_amount }} {{ quote.to_currency }}</small><br>
+                                    <small class="text-muted">Rate: {{ quote.exchange_rate }}</small>
+                                </div>
+                            </div>
+                            {% if not forloop.last %}<hr class="my-2">{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted small">No saved quotes yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

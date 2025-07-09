@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Saved Quotes - Finance Forge{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-warning text-dark">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-bookmark me-2"></i>Saved Quotes
+                    </h3>
+                    <a href="{% url 'currency_converter' %}" class="btn btn-dark">
+                        <i class="fas fa-exchange-alt me-2"></i>New Quote
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if quotes %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>From Currency</th>
+                                <th>To Currency</th>
+                                <th>Amount</th>
+                                <th>Converted Amount</th>
+                                <th>Exchange Rate</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for quote in quotes %}
+                            <tr>
+                                <td>{{ quote.quote_date|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ quote.from_currency }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">{{ quote.to_currency }}</span>
+                                </td>
+                                <td>{{ quote.amount }}</td>
+                                <td>{{ quote.converted_amount }}</td>
+                                <td>{{ quote.exchange_rate }}</td>
+                                <td>
+                                    {% if quote.notes %}
+                                    <span class="text-muted">{{ quote.notes|truncatechars:30 }}</span>
+                                    {% else %}
+                                    <span class="text-muted">No notes</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Summary Statistics -->
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h5 class="text-warning">{{ quotes.count }}</h5>
+                                <small class="text-muted">Total Saved Quotes</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h5 class="text-info">{{ quotes.first.quote_date|date:"M d" }}</h5>
+                                <small class="text-muted">Latest Quote</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h5 class="text-success">{{ quotes.last.quote_date|date:"M d" }}</h5>
+                                <small class="text-muted">Oldest Quote</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-bookmark fa-4x text-muted mb-4"></i>
+                    <h4 class="text-muted mb-3">No Saved Quotes Yet</h4>
+                    <p class="text-muted mb-4">Save your favorite currency conversions for future reference.</p>
+                    <a href="{% url 'currency_converter' %}" class="btn btn-warning btn-lg">
+                        <i class="fas fa-exchange-alt me-2"></i>Create Quote
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional spacing for footer -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="text-center text-muted">
+            <small>Your saved quotes help you track important currency conversions for future reference.</small>
+        </div>
+    </div>
+</div>
+{% endblock %} 

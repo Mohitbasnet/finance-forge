@@ -1,0 +1,29 @@
+# Development Requirements for Finance Forge
+# Install with: pip install -r requirements-dev.txt
+
+# Core requirements
+-r requirements.txt
+
+# Code Formatting and Linting
+black==25.1.0
+flake8==7.0.0
+autopep8==2.3.2
+
+# Testing
+pytest==8.0.0
+pytest-django==4.8.0
+
+# Debugging
+django-debug-toolbar==4.3.0
+
+# Environment Management
+python-dotenv==1.0.0
+
+# Development Server
+django-extensions==3.2.3
+
+# Database Tools
+django-extensions==3.2.3
+
+# Code Quality
+pre-commit==3.6.0 

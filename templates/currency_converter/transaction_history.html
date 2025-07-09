@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Transaction History - Finance Forge{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Transaction History
+                    </h3>
+                    <a href="{% url 'currency_converter' %}" class="btn btn-light">
+                        <i class="fas fa-exchange-alt me-2"></i>New Conversion
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if transactions %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>From Currency</th>
+                                <th>To Currency</th>
+                                <th>Amount</th>
+                                <th>Converted Amount</th>
+                                <th>Exchange Rate</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in transactions %}
+                            <tr>
+                                <td>{{ transaction.transaction_date|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ transaction.from_currency }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">{{ transaction.to_currency }}</span>
+                                </td>
+                                <td>{{ transaction.amount }}</td>
+                                <td>{{ transaction.converted_amount }}</td>
+                                <td>{{ transaction.exchange_rate }}</td>
+                                <td>
+                                    <span class="badge bg-{% if transaction.transaction_type == 'BUY' %}info{% else %}warning{% endif %}">
+                                        {{ transaction.transaction_type }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Summary Statistics -->
+                <div class="row mt-4">
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h5 class="text-primary">{{ transactions.count }}</h5>
+                                <small class="text-muted">Total Transactions</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h5 class="text-success">{{ transactions|length }}</h5>
+                                <small class="text-muted">This Page</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h5 class="text-info">{{ transactions.first.transaction_date|date:"M d" }}</h5>
+                                <small class="text-muted">Latest Transaction</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h5 class="text-warning">{{ transactions.last.transaction_date|date:"M d" }}</h5>
+                                <small class="text-muted">Oldest Transaction</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-history fa-4x text-muted mb-4"></i>
+                    <h4 class="text-muted mb-3">No Transactions Yet</h4>
+                    <p class="text-muted mb-4">Start converting currencies to see your transaction history here.</p>
+                    <a href="{% url 'currency_converter' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-exchange-alt me-2"></i>Start Converting
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional spacing for footer -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="text-center text-muted">
+            <small>Your transaction history is automatically updated with each currency conversion.</small>
+        </div>
+    </div>
+</div>
+{% endblock %} 

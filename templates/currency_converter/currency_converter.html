@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+
+{% block title %}Currency Converter - Finance Forge{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-exchange-alt me-2"></i>Currency Converter
+                </h3>
+            </div>
+            <div class="card-body p-4">
+                <form id="converterForm">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="fromCurrency" class="form-label fw-bold">From Currency</label>
+                            <select class="form-select" id="fromCurrency" required>
+                                <option value="">Select currency</option>
+                                {% for code, name in currencies.items %}
+                                <option value="{{ code }}">{{ code }} - {{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="toCurrency" class="form-label fw-bold">To Currency</label>
+                            <select class="form-select" id="toCurrency" required>
+                                <option value="">Select currency</option>
+                                {% for code, name in currencies.items %}
+                                <option value="{{ code }}">{{ code }} - {{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="amount" class="form-label fw-bold">Amount</label>
+                            <input type="number" class="form-control" id="amount" placeholder="Enter amount" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Converted Amount</label>
+                            <div class="form-control bg-light" id="result" style="min-height: 38px; display: flex; align-items: center;">
+                                <span class="text-muted">Result will appear here</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-calculator me-2"></i>Convert Currency
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                
+                <!-- Exchange Rate Display -->
+                <div id="exchangeRateInfo" class="mt-4" style="display: none;">
+                    <div class="alert alert-info">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Exchange Rate:</strong> <span id="rateDisplay"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Last Updated:</strong> <span id="lastUpdated"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Save Quote Section (for logged in users) -->
+                {% if user.is_authenticated %}
+                <div id="saveQuoteSection" class="mt-4" style="display: none;">
+                    <div class="card border-success">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-bookmark me-2"></i>Save This Quote
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="quoteNotes" placeholder="Add notes (optional)">
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-success w-100" id="saveQuoteBtn">
+                                        <i class="fas fa-save me-2"></i>Save Quote
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Currency Information -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-0 shadow">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Supported Currencies
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for code, name in currencies.items %}
+                            <div class="col-md-4 mb-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="currency-flag me-2">
+                                        <i class="fas fa-flag text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <strong>{{ code }}</strong><br>
+                                        <small class="text-muted">{{ name }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('converterForm');
+    const resultDiv = document.getElementById('result');
+    const exchangeRateInfo = document.getElementById('exchangeRateInfo');
+    const rateDisplay = document.getElementById('rateDisplay');
+    const lastUpdated = document.getElementById('lastUpdated');
+    const saveQuoteSection = document.getElementById('saveQuoteSection');
+    const saveQuoteBtn = document.getElementById('saveQuoteBtn');
+    
+    let currentConversion = null;
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const fromCurrency = document.getElementById('fromCurrency').value;
+        const toCurrency = document.getElementById('toCurrency').value;
+        const amount = document.getElementById('amount').value;
+        
+        if (!fromCurrency || !toCurrency || !amount) {
+            alert('Please fill in all fields');
+            return;
+        }
+        
+        if (fromCurrency === toCurrency) {
+            resultDiv.innerHTML = `<span class="text-primary fw-bold">${amount} ${fromCurrency}</span>`;
+            exchangeRateInfo.style.display = 'none';
+            saveQuoteSection.style.display = 'none';
+            return;
+        }
+        
+        // Show loading
+        resultDiv.innerHTML = '<span class="text-muted">Converting...</span>';
+        
+        // Debug logging
+        console.log('From Currency:', fromCurrency);
+        console.log('To Currency:', toCurrency);
+        console.log('Amount:', amount);
+        console.log('From Currency type:', typeof fromCurrency);
+        console.log('To Currency type:', typeof toCurrency);
+        console.log('Amount type:', typeof amount);
+        
+                const requestBody = {
+            from_currency: fromCurrency,
+            to_currency: toCurrency,
+            amount: amount
+        };
+        console.log('Request body:', requestBody);
+        
+        fetch('{% url "convert_currency" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const formattedAmount = new Intl.NumberFormat('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }).format(data.converted_amount);
+                
+                resultDiv.innerHTML = `<span class="text-success fw-bold fs-5">${formattedAmount} ${data.to_currency}</span>`;
+                
+                // Show exchange rate info
+                rateDisplay.textContent = `1 ${data.from_currency} = ${data.exchange_rate} ${data.to_currency}`;
+                lastUpdated.textContent = new Date().toLocaleString();
+                exchangeRateInfo.style.display = 'block';
+                
+                // Store current conversion for saving
+                currentConversion = {
+                    from_currency: data.from_currency,
+                    to_currency: data.to_currency,
+                    amount: data.amount,
+                    converted_amount: data.converted_amount,
+                    exchange_rate: data.exchange_rate
+                };
+                
+                // Show save quote section for logged in users
+                {% if user.is_authenticated %}
+                saveQuoteSection.style.display = 'block';
+                {% endif %}
+            } else {
+                resultDiv.innerHTML = `<span class="text-danger">Error: ${data.error}</span>`;
+                exchangeRateInfo.style.display = 'none';
+                saveQuoteSection.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            resultDiv.innerHTML = '<span class="text-danger">Error: Unable to convert currency</span>';
+            exchangeRateInfo.style.display = 'none';
+            saveQuoteSection.style.display = 'none';
+        });
+    });
+    
+    // Save quote functionality
+    if (saveQuoteBtn) {
+        saveQuoteBtn.addEventListener('click', function() {
+            if (!currentConversion) return;
+            
+            const notes = document.getElementById('quoteNotes').value;
+            
+            fetch('{% url "save_quote" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ...currentConversion,
+                    notes: notes
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Create success notification
+                    const successAlert = document.createElement('div');
+                    successAlert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                    successAlert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                    successAlert.innerHTML = `
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <div>
+                                <strong>Quote Saved!</strong><br>
+                                <small>Your currency conversion has been saved successfully.</small>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    document.body.appendChild(successAlert);
+                    
+                    // Auto-remove after 3 seconds
+                    setTimeout(() => {
+                        if (successAlert.parentNode) {
+                            successAlert.remove();
+                        }
+                    }, 3000);
+                    
+                    document.getElementById('quoteNotes').value = '';
+                    saveQuoteSection.style.display = 'none';
+                } else {
+                    // Create error notification
+                    const errorAlert = document.createElement('div');
+                    errorAlert.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+                    errorAlert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                    errorAlert.innerHTML = `
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <div>
+                                <strong>Save Failed!</strong><br>
+                                <small>${data.error}</small>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    document.body.appendChild(errorAlert);
+                    
+                    // Auto-remove after 5 seconds
+                    setTimeout(() => {
+                        if (errorAlert.parentNode) {
+                            errorAlert.remove();
+                        }
+                    }, 5000);
+                }
+            })
+            .catch(error => {
+                // Create error notification
+                const errorAlert = document.createElement('div');
+                errorAlert.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+                errorAlert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+                errorAlert.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <div>
+                            <strong>Network Error!</strong><br>
+                            <small>Unable to save quote. Please try again.</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.body.appendChild(errorAlert);
+                
+                // Auto-remove after 5 seconds
+                setTimeout(() => {
+                    if (errorAlert.parentNode) {
+                        errorAlert.remove();
+                    }
+                }, 5000);
+            });
+        });
+    }
+    
+
+});
+</script>
+{% endblock %} 
