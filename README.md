@@ -185,8 +185,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 👨‍💻 Author
 
 **Your Name**
-- GitHub: [@yourusername](https://github.com/Mohitbasnet)
-- LinkedIn: [Your LinkedIn](https://www.linkedin.com/in/mohit-basnet-1b963a25a/)
+- GitHub: [Mohit Basnet](https://github.com/Mohitbasnet)
+- LinkedIn: [Mohit Basnet](https://www.linkedin.com/in/mohit-basnet-1b963a25a/)
 
 ## 🙏 Acknowledgments
 
